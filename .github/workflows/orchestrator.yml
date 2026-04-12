@@ -47,22 +47,31 @@ jobs:
       github.event_name != 'issue_comment' ||
       contains(github.event.comment.body, '@orchestrator')
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # - name: Checkout repository
+      #   uses: actions/checkout@v4
         
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+      # - name: Login to GHCR
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: Purna88836
+      #     password: ${{ secrets.ORCHESTRATOR_PAT }}
+
+      # # Option A: Pull from private GHCR (production)
+      # - name: Run AI Orchestrator
+      #   uses: docker://ghcr.io/purna88836/git-native-agentic-ai-orchestrator:0.1.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.ORCHESTRATOR_PAT }}
+      #     ORCHESTRATOR_CONFIG_PATH: ".orchestrator/config.yaml"
+
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: Purna88836
           password: ${{ secrets.ORCHESTRATOR_PAT }}
-
-      # Option A: Pull from private GHCR (production)
       - name: Run AI Orchestrator
         uses: docker://ghcr.io/purna88836/git-native-agentic-ai-orchestrator:0.1.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.ORCHESTRATOR_PAT }}
-          ORCHESTRATOR_CONFIG_PATH: ".orchestrator/config.yaml"
 
       # Option B: If using the action from a private repo directly (alternative)
       # - name: Run AI Orchestrator
