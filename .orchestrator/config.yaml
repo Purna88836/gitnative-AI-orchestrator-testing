@@ -11,7 +11,7 @@ weekly_improvement_scan: true
 
 # GitHub usernames of your team (mentioned for approvals)
 human_developers:
-  - your-username-here
+  - Purna88836
 
 labels:
   working: "AI: working"
