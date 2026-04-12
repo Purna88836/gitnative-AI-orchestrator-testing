@@ -1,0 +1,63 @@
+# GitHub AI Orchestrator Workflow
+#
+# This workflow uses the AI Orchestrator action (private Docker image).
+# No source code is exposed — only the published container is pulled.
+#
+# Setup:
+#   1. Copy this file to .github/workflows/orchestrator.yml
+#   2. Copy .orchestrator/config.yaml and customize
+#   3. Copy .github/agents/ and customize agent files
+#   4. Add ORCHESTRATOR_PAT secret (PAT with packages:read scope to pull private image)
+#      OR grant the repo access to the package in GHCR settings
+
+name: AI Orchestrator
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+  issue_comment:
+    types: [created]
+
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+
+  schedule:
+    - cron: "0 9 * * 1"  # Weekly Monday 9am UTC
+
+concurrency:
+  group: orchestrator-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'issue_comment' ||
+      contains(github.event.comment.body, '@orchestrator')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Option A: Pull from private GHCR (production)
+      - name: Run AI Orchestrator
+        uses: docker://ghcr.io/YOUR-ORG/ai-orchestrator:latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORCHESTRATOR_CONFIG_PATH: ".orchestrator/config.yaml"
+
+      # Option B: If using the action from a private repo directly (alternative)
+      # - name: Run AI Orchestrator
+      #   uses: YOUR-ORG/ai-orchestrator@v1
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}

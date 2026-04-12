@@ -1,0 +1,34 @@
+# GitHub AI Orchestrator Configuration
+# Customize this for your repository.
+
+mode: assisted  # advisory | assisted | autonomous
+
+auto_fix_ci: true
+auto_pr_review: true
+auto_merge: false
+require_human_approval: false
+weekly_improvement_scan: true
+
+# GitHub usernames of your team (mentioned for approvals)
+human_developers:
+  - your-username-here
+
+labels:
+  working: "AI: working"
+  human_approval: "AI: human-approval"
+  blocked: "AI: blocked"
+  done: "AI: done"
+
+branch:
+  prefix: ai
+  separator: "/"
+
+retry:
+  max_attempts: 3
+  max_autopilot_continues: 20
+
+mcp:
+  built_in_mcp_enabled: true
+  repo_local_mcp_enabled: false
+
+effort: high
