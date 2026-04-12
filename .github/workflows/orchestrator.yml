@@ -52,4 +52,4 @@ jobs:
             -v "${{ github.workspace }}:/github/workspace" \
             -v "${{ github.event_path }}:/github/workflow/event.json:ro" \
             -w /github/workspace \
-            ghcr.io/purna88836/git-native-agentic-ai-orchestrator:0.1.1
+            ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest
