@@ -38,6 +38,7 @@ permissions:
   issues: write
   pull-requests: write
   actions: read
+  packages: read
 
 jobs:
   orchestrate:
