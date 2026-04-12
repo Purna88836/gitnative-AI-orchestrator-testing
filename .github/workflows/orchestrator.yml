@@ -51,7 +51,7 @@ jobs:
 
       # Option A: Pull from private GHCR (production)
       - name: Run AI Orchestrator
-        uses: docker://ghcr.io/YOUR-ORG/ai-orchestrator:latest
+        uses: docker://ghcr.io/purna88836/ai-orchestrator:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORCHESTRATOR_CONFIG_PATH: ".orchestrator/config.yaml"
