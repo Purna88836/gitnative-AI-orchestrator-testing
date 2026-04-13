@@ -23,11 +23,11 @@ Edit `.orchestrator/config.yaml`:
 - Add your GitHub usernames to `human_developers`.
 - Set `auto_merge: true` if you want auto-merging (default: false).
 
-### 3. Roll out the pinned workflow image
+### 3. Pin the workflow image
 
-This repository's `main` branch may still use `ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest` until the workflow change from issue #7 / PR #11 lands. The target workflow implementation replaces that mutable tag with a single immutable digest so every run is traceable to one published image build, image upgrades stay reviewable, and registry tag moves cannot change orchestrator behavior silently.
+Use an immutable digest instead of a mutable tag such as `:latest` for the orchestrator container. That keeps each workflow run traceable to one published image build, makes image upgrades reviewable, and prevents registry tag moves from silently changing orchestrator behavior.
 
-The rollout from #7 pins the image through a shared workflow variable:
+The pinned workflow format uses a shared workflow variable:
 
 ```yaml
 env:
@@ -35,7 +35,7 @@ env:
   REQUIRED_COPILOT_COMMAND: copilot
 ```
 
-When you apply that change in `.github/workflows/orchestrator.yml`, keep the same `ORCHESTRATOR_IMAGE` value wired into all image-consuming steps:
+If your repository still references `ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest` directly, migrate it to this env-based form and keep the same `ORCHESTRATOR_IMAGE` value wired into all image-consuming steps:
 
 1. `docker pull "$ORCHESTRATOR_IMAGE"` in `Pull orchestrator image`.
 2. `docker run ... "$ORCHESTRATOR_IMAGE" ...` in `Preflight Copilot availability`.
@@ -52,7 +52,7 @@ When maintainers intentionally move to a new orchestrator image:
 
 #### Interpreting preflight tooling failures
 
-Once the #7 workflow change is present, `Preflight Copilot availability` runs before the main orchestrator step and checks that the pinned image can resolve and invoke `copilot`.
+In the pinned workflow, `Preflight Copilot availability` runs before the main orchestrator step and checks that the pinned image can resolve and invoke `copilot`.
 
 Treat any failure there as an image-content problem, not an issue payload problem:
 
