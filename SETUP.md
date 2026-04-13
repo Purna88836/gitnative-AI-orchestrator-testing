@@ -23,35 +23,43 @@ Edit `.orchestrator/config.yaml`:
 - Add your GitHub usernames to `human_developers`.
 - Set `auto_merge: true` if you want auto-merging (default: false).
 
-### 3. Pin the workflow image
+### 3. Roll out the pinned workflow image
 
-Do not use a mutable tag such as `:latest` for the orchestrator container. Pinning the workflow to a single immutable image digest makes every workflow run traceable to an exact container build, keeps reviews focused on a deliberate image change, and avoids silent behavior changes when the registry tag moves.
+This repository's `main` branch may still use `ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest` until the workflow change from issue #7 / PR #11 lands. The target workflow implementation replaces that mutable tag with a single immutable digest so every run is traceable to one published image build, image upgrades stay reviewable, and registry tag moves cannot change orchestrator behavior silently.
 
-Use one pinned reference format consistently anywhere the workflow pulls or runs the image:
+The rollout from #7 pins the image through a shared workflow variable:
 
 ```yaml
-ghcr.io/purna88836/git-native-agentic-ai-orchestrator@sha256:<published-digest>
+env:
+  ORCHESTRATOR_IMAGE: ghcr.io/purna88836/git-native-agentic-ai-orchestrator@sha256:862e33b924c53110c1b06e406159423dda9ec646ae87f1463b1b9edd0cdbcb92
+  REQUIRED_COPILOT_COMMAND: copilot
 ```
 
-In `.github/workflows/orchestrator.yml`, update the image reference in both places so they stay identical:
+When you apply that change in `.github/workflows/orchestrator.yml`, keep the same `ORCHESTRATOR_IMAGE` value wired into all image-consuming steps:
 
-1. The `docker pull ...` command in the `Pull orchestrator image` step.
-2. The image argument at the end of the `docker run ...` command in the `Run AI Orchestrator` step.
+1. `docker pull "$ORCHESTRATOR_IMAGE"` in `Pull orchestrator image`.
+2. `docker run ... "$ORCHESTRATOR_IMAGE" ...` in `Preflight Copilot availability`.
+3. The final `"$ORCHESTRATOR_IMAGE"` argument in `Run AI Orchestrator`.
 
 #### Upgrading the pinned image
 
 When maintainers intentionally move to a new orchestrator image:
 
 1. Get the new published digest for `ghcr.io/purna88836/git-native-agentic-ai-orchestrator`.
-2. Edit `.github/workflows/orchestrator.yml` and replace the existing digest in both the `docker pull` line and the final `docker run` image argument.
-3. In review, confirm the pull and run references are still byte-for-byte identical and that the diff only changes the intended image version/digest.
-4. After the upgrade lands, verify the next workflow run pulls the expected digest and that the preflight tooling check passes before the main orchestration step starts.
+2. Edit `env.ORCHESTRATOR_IMAGE` in `.github/workflows/orchestrator.yml` and replace the old digest with the new one.
+3. In review, confirm `Pull orchestrator image`, `Preflight Copilot availability`, and `Run AI Orchestrator` all still reference `"$ORCHESTRATOR_IMAGE"`, and that `REQUIRED_COPILOT_COMMAND` remains `copilot` unless the container contract intentionally changes.
+4. After the upgrade lands, verify the next workflow run logs `Preflighting pinned orchestrator image: ...` and then reaches the main orchestrator step with the expected digest.
 
 #### Interpreting preflight tooling failures
 
-The workflow now performs a lightweight preflight check against the pinned image before the main orchestration step. If the image is missing required Copilot tooling, the workflow should fail fast and name both the pinned image reference and the missing command in the logs.
+Once the #7 workflow change is present, `Preflight Copilot availability` runs before the main orchestrator step and checks that the pinned image can resolve and invoke `copilot`.
 
-Treat that failure as an image-content problem, not an issue payload problem. Review the pinned digest in `.github/workflows/orchestrator.yml`, inspect the failing preflight step logs to see which command is missing, and compare the image you upgraded to with the expected container contents or release notes. If needed, reproduce locally with the same pinned image and inspect whether the required CLI is present before updating the workflow again.
+Treat any failure there as an image-content problem, not an issue payload problem:
+
+- `Pinned orchestrator image ... is missing required command: copilot` means the image does not contain the expected CLI.
+- `Pinned orchestrator image ... could not invoke required command: copilot` means the command exists but did not run successfully.
+
+When that happens, inspect `env.ORCHESTRATOR_IMAGE` in `.github/workflows/orchestrator.yml`, review the preflight step logs to see which diagnostic fired, compare the pinned digest with the image release notes or container contents, and reproduce locally with the same image before changing the workflow again.
 
 ### 4. Grant access (if private image)
 
