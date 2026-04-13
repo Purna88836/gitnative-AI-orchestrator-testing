@@ -28,7 +28,7 @@ jobs:
   orchestrate:
     runs-on: ubuntu-latest
     env:
-      ORCHESTRATOR_IMAGE: ghcr.io/purna88836/git-native-agentic-ai-orchestrator:0.1.12
+      ORCHESTRATOR_IMAGE: ghcr.io/purna88836/git-native-agentic-ai-orchestrator@sha256:862e33b924c53110c1b06e406159423dda9ec646ae87f1463b1b9edd0cdbcb92
     if: >-
       github.event_name != 'issue_comment' ||
       contains(github.event.comment.body, '@orchestrator')
