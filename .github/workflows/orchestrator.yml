@@ -27,6 +27,8 @@ permissions:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
+    env:
+      ORCHESTRATOR_IMAGE: ghcr.io/purna88836/git-native-agentic-ai-orchestrator:0.1.12
     if: >-
       github.event_name != 'issue_comment' ||
       contains(github.event.comment.body, '@orchestrator')
@@ -37,7 +39,21 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Pull orchestrator image
-        run: docker pull ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest
+        run: docker pull "$ORCHESTRATOR_IMAGE"
+
+      - name: Preflight Copilot CLI
+        run: |
+          set -euo pipefail
+          preflight_output="$(mktemp)"
+          if docker run --rm --entrypoint copilot "$ORCHESTRATOR_IMAGE" --version >"$preflight_output" 2>&1; then
+            cat "$preflight_output"
+          else
+            diagnostic="$(tr '\n' ' ' <"$preflight_output" | sed 's/  */ /g')"
+            echo "::error title=Copilot CLI missing from pinned orchestrator image::Pinned orchestrator image $ORCHESTRATOR_IMAGE failed preflight command 'copilot --version'. Diagnostic: ${diagnostic:-command produced no output}. Publish or select an image version that includes the Copilot CLI before rerunning this workflow."
+            rm -f "$preflight_output"
+            exit 1
+          fi
+          rm -f "$preflight_output"
 
       - name: Run AI Orchestrator
         run: |
@@ -52,4 +68,4 @@ jobs:
             -v "${{ github.workspace }}:/github/workspace" \
             -v "${{ github.event_path }}:/github/workflow/event.json:ro" \
             -w /github/workspace \
-            ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest
+            "$ORCHESTRATOR_IMAGE"
