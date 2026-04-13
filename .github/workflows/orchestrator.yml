@@ -42,7 +42,7 @@ jobs:
       - name: Run AI Orchestrator
         run: |
           docker run --rm \
-            -e GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
+            -e GITHUB_TOKEN="${{ secrets.COPILOT_TOKEN }}" \
             -e ORCHESTRATOR_CONFIG_PATH=".orchestrator/config.yaml" \
             -e GITHUB_REPOSITORY="${{ github.repository }}" \
             -e GITHUB_EVENT_NAME="${{ github.event_name }}" \
