@@ -53,7 +53,7 @@ jobs:
           docker run --rm \
             -e REQUIRED_COPILOT_COMMAND="$REQUIRED_COPILOT_COMMAND" \
             "$ORCHESTRATOR_IMAGE" \
-            sh -lc 'command -v "$REQUIRED_COPILOT_COMMAND" >/dev/null && "$REQUIRED_COPILOT_COMMAND" --version >/dev/null'
+            sh -lc 'command -v "$REQUIRED_COPILOT_COMMAND" >/dev/null || exit 127; "$REQUIRED_COPILOT_COMMAND" --version >/dev/null'
           status=$?
           set -e
 
