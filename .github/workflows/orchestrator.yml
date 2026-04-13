@@ -49,6 +49,7 @@ jobs:
             -e GITHUB_EVENT_PATH="/github/workflow/event.json" \
             -e GITHUB_RUN_ID="${{ github.run_id }}" \
             -e GITHUB_SERVER_URL="${{ github.server_url }}" \
+            -e GITHUB_WORKSPACE="/github/workspace" \
             -v "${{ github.workspace }}:/github/workspace" \
             -v "${{ github.event_path }}:/github/workflow/event.json:ro" \
             -w /github/workspace \
