@@ -5,10 +5,10 @@ on:
     types: [opened, edited, reopened]
   issue_comment:
     types: [created]
-  pull_request:
-    types: [opened, synchronize, reopened]
-  workflow_run:
-    workflows: ["*"]
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  # workflow_run:
+  #   workflows: ["*"]
     types: [completed]
   # schedule:
   #   - cron: "0 5 * * 1"
