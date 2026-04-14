@@ -1,39 +1,11 @@
-(function () {
-  const state = {
-    todos: [],
-    loading: false,
-    error: "",
-    status: "",
-    editingId: null,
-    pendingIds: new Set(),
-    creating: false,
-  };
-
-  const elements = {
-    createForm: document.querySelector("#create-form"),
-    createButton: document.querySelector("#create-button"),
-    newTodoTitle: document.querySelector("#new-todo-title"),
-    errorBanner: document.querySelector("#error-banner"),
-    statusBanner: document.querySelector("#status-banner"),
-    loadingState: document.querySelector("#loading-state"),
-    emptyState: document.querySelector("#empty-state"),
-    todoList: document.querySelector("#todo-list"),
-    itemTemplate: document.querySelector("#todo-item-template"),
-  };
-
-  function setError(message) {
-    state.error = message;
-    render();
-  }
-
-  function setStatus(message) {
-    state.status = message;
-    render();
-  }
-
-  function clearMessages() {
-    state.error = "";
-    state.status = "";
+(function (globalScope) {
+  function setHeaders(options) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      ...options,
+    };
   }
 
   async function parseJson(response) {
@@ -51,12 +23,11 @@
   }
 
   async function request(path, options) {
-    const response = await fetch(path, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      ...options,
-    });
+    if (typeof globalScope.fetch !== "function") {
+      throw new Error("Fetch is not available in this environment.");
+    }
+
+    const response = await globalScope.fetch(path, setHeaders(options));
     const data = await parseJson(response);
 
     if (!response.ok) {
@@ -86,217 +57,353 @@
     return value.trim();
   }
 
-  async function loadTodos() {
-    state.loading = true;
-    state.error = "";
-    render();
-
-    try {
-      const payload = await request("/api/todos", { method: "GET" });
-      state.todos = normalizeTodoList(payload);
-    } catch (error) {
-      state.todos = [];
-      setError(error.message);
-    } finally {
-      state.loading = false;
-      render();
+  function createTodoApp(options) {
+    if (!options || typeof options.request !== "function") {
+      throw new Error("A request function is required.");
     }
-  }
 
-  async function createTodo(title) {
-    state.creating = true;
-    clearMessages();
-    render();
+    const state = {
+      todos: [],
+      loading: false,
+      error: "",
+      status: "",
+      editingId: null,
+      pendingIds: new Set(),
+      creating: false,
+    };
+    const onStateChange =
+      typeof options.onStateChange === "function" ? options.onStateChange : function () {};
 
-    try {
-      await request("/api/todos", {
-        method: "POST",
-        body: JSON.stringify({ title }),
-      });
-
-      elements.createForm.reset();
-      await loadTodos();
-      setStatus("Todo created.");
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      state.creating = false;
-      render();
+    function notify() {
+      onStateChange(state);
     }
-  }
 
-  async function updateTodo(id, updates, successMessage) {
-    state.pendingIds.add(id);
-    clearMessages();
-    render();
-
-    try {
-      await request("/api/todos/" + encodeURIComponent(id), {
-        method: "PATCH",
-        body: JSON.stringify(updates),
-      });
-
-      state.editingId = null;
-      await loadTodos();
-      setStatus(successMessage);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      state.pendingIds.delete(id);
-      render();
+    function setError(message) {
+      state.error = message;
+      notify();
     }
-  }
 
-  async function deleteTodo(id) {
-    state.pendingIds.add(id);
-    clearMessages();
-    render();
+    function setStatus(message) {
+      state.status = message;
+      notify();
+    }
 
-    try {
-      await request("/api/todos/" + encodeURIComponent(id), {
-        method: "DELETE",
-      });
+    function clearMessages() {
+      state.error = "";
+      state.status = "";
+    }
 
-      if (state.editingId === id) {
-        state.editingId = null;
+    async function loadTodos(config) {
+      const shouldThrow = Boolean(config && config.throwOnError);
+
+      state.loading = true;
+      state.error = "";
+      notify();
+
+      try {
+        const payload = await options.request("/api/todos", { method: "GET" });
+        state.todos = normalizeTodoList(payload);
+        return state.todos;
+      } catch (error) {
+        state.todos = [];
+        setError(error.message);
+
+        if (shouldThrow) {
+          throw error;
+        }
+
+        return null;
+      } finally {
+        state.loading = false;
+        notify();
       }
-
-      await loadTodos();
-      setStatus("Todo deleted.");
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      state.pendingIds.delete(id);
-      render();
     }
-  }
 
-  function setBusy(element, busy) {
-    element.disabled = busy;
-  }
+    async function submitCreate(rawTitle, controls) {
+      const title = normalizeTitle(rawTitle);
 
-  function renderMessages() {
-    elements.errorBanner.hidden = !state.error;
-    elements.errorBanner.textContent = state.error;
-
-    elements.statusBanner.hidden = !state.status;
-    elements.statusBanner.textContent = state.status;
-  }
-
-  function renderTodoItem(todo) {
-    const fragment = elements.itemTemplate.content.cloneNode(true);
-    const item = fragment.querySelector(".todo-item");
-    const checkbox = fragment.querySelector(".todo-complete");
-    const title = fragment.querySelector(".todo-title");
-    const editButton = fragment.querySelector(".todo-edit");
-    const deleteButton = fragment.querySelector(".todo-delete");
-    const editForm = fragment.querySelector(".todo-edit-form");
-    const editInput = fragment.querySelector(".todo-edit-input");
-    const saveButton = fragment.querySelector(".todo-save");
-    const cancelButton = fragment.querySelector(".todo-cancel");
-    const view = fragment.querySelector(".todo-view");
-    const isBusy = state.pendingIds.has(todo.id);
-    const isEditing = state.editingId === todo.id;
-
-    item.dataset.todoId = todo.id;
-    checkbox.checked = Boolean(todo.completed);
-    checkbox.setAttribute("aria-label", "Mark " + todo.title + " complete");
-    title.textContent = todo.title;
-    title.classList.toggle("is-completed", Boolean(todo.completed));
-
-    setBusy(checkbox, isBusy);
-    setBusy(editButton, isBusy);
-    setBusy(deleteButton, isBusy);
-    setBusy(editInput, isBusy);
-    setBusy(saveButton, isBusy);
-    setBusy(cancelButton, isBusy);
-
-    view.hidden = isEditing;
-    editForm.hidden = !isEditing;
-    editInput.value = todo.title;
-
-    checkbox.addEventListener("change", function () {
-      updateTodo(todo.id, { completed: checkbox.checked }, "Todo updated.");
-    });
-
-    editButton.addEventListener("click", function () {
-      state.editingId = todo.id;
-      clearMessages();
-      render();
-      const nextItem = Array.from(elements.todoList.children).find(function (node) {
-        return node.dataset.todoId === todo.id;
-      });
-      const nextInput = nextItem ? nextItem.querySelector(".todo-edit-input") : null;
-
-      if (nextInput) {
-        nextInput.focus();
-        nextInput.select();
-      }
-    });
-
-    deleteButton.addEventListener("click", function () {
-      deleteTodo(todo.id);
-    });
-
-    cancelButton.addEventListener("click", function () {
-      state.editingId = null;
-      clearMessages();
-      render();
-    });
-
-    editForm.addEventListener("submit", function (event) {
-      event.preventDefault();
-
-      const nextTitle = normalizeTitle(editInput.value);
-
-      if (!nextTitle) {
+      if (!title) {
         setError("Todo title is required.");
-        editInput.focus();
-        return;
+
+        if (controls && typeof controls.focusInvalid === "function") {
+          controls.focusInvalid();
+        }
+
+        return false;
       }
 
-      updateTodo(todo.id, { title: nextTitle }, "Todo updated.");
+      state.creating = true;
+      clearMessages();
+      notify();
+
+      try {
+        await options.request("/api/todos", {
+          method: "POST",
+          body: JSON.stringify({ title }),
+        });
+
+        if (controls && typeof controls.resetForm === "function") {
+          controls.resetForm();
+        }
+
+        await loadTodos({ throwOnError: true });
+        setStatus("Todo created.");
+        return true;
+      } catch (error) {
+        setError(error.message);
+        return false;
+      } finally {
+        state.creating = false;
+        notify();
+      }
+    }
+
+    async function updateTodo(id, updates, successMessage) {
+      state.pendingIds.add(id);
+      clearMessages();
+      notify();
+
+      try {
+        await options.request("/api/todos/" + encodeURIComponent(id), {
+          method: "PATCH",
+          body: JSON.stringify(updates),
+        });
+
+        state.editingId = null;
+        await loadTodos({ throwOnError: true });
+        setStatus(successMessage);
+        return true;
+      } catch (error) {
+        setError(error.message);
+        return false;
+      } finally {
+        state.pendingIds.delete(id);
+        notify();
+      }
+    }
+
+    async function submitUpdateTitle(id, rawTitle, controls) {
+      const title = normalizeTitle(rawTitle);
+
+      if (!title) {
+        setError("Todo title is required.");
+
+        if (controls && typeof controls.focusInvalid === "function") {
+          controls.focusInvalid();
+        }
+
+        return false;
+      }
+
+      return updateTodo(id, { title: title }, "Todo updated.");
+    }
+
+    async function toggleTodo(id, completed) {
+      return updateTodo(id, { completed: completed }, "Todo updated.");
+    }
+
+    async function deleteTodo(id) {
+      state.pendingIds.add(id);
+      clearMessages();
+      notify();
+
+      try {
+        await options.request("/api/todos/" + encodeURIComponent(id), {
+          method: "DELETE",
+        });
+
+        if (state.editingId === id) {
+          state.editingId = null;
+        }
+
+        await loadTodos({ throwOnError: true });
+        setStatus("Todo deleted.");
+        return true;
+      } catch (error) {
+        setError(error.message);
+        return false;
+      } finally {
+        state.pendingIds.delete(id);
+        notify();
+      }
+    }
+
+    function startEditing(id) {
+      state.editingId = id;
+      clearMessages();
+      notify();
+    }
+
+    function cancelEditing() {
+      state.editingId = null;
+      clearMessages();
+      notify();
+    }
+
+    return {
+      state: state,
+      loadTodos: loadTodos,
+      submitCreate: submitCreate,
+      submitUpdateTitle: submitUpdateTitle,
+      toggleTodo: toggleTodo,
+      deleteTodo: deleteTodo,
+      startEditing: startEditing,
+      cancelEditing: cancelEditing,
+    };
+  }
+
+  function initializeTodoApp(rootDocument) {
+    const elements = {
+      createForm: rootDocument.querySelector("#create-form"),
+      createButton: rootDocument.querySelector("#create-button"),
+      newTodoTitle: rootDocument.querySelector("#new-todo-title"),
+      errorBanner: rootDocument.querySelector("#error-banner"),
+      statusBanner: rootDocument.querySelector("#status-banner"),
+      loadingState: rootDocument.querySelector("#loading-state"),
+      emptyState: rootDocument.querySelector("#empty-state"),
+      todoList: rootDocument.querySelector("#todo-list"),
+      itemTemplate: rootDocument.querySelector("#todo-item-template"),
+    };
+
+    function setBusy(element, busy) {
+      element.disabled = busy;
+    }
+
+    const app = createTodoApp({
+      request: request,
+      onStateChange: render,
     });
 
-    return fragment;
-  }
+    function renderMessages() {
+      elements.errorBanner.hidden = !app.state.error;
+      elements.errorBanner.textContent = app.state.error;
 
-  function renderTodos() {
-    elements.todoList.innerHTML = "";
-
-    for (const todo of state.todos) {
-      elements.todoList.appendChild(renderTodoItem(todo));
-    }
-  }
-
-  function render() {
-    const isBusy = state.loading || state.creating;
-
-    renderMessages();
-    elements.loadingState.hidden = !state.loading;
-    elements.emptyState.hidden = state.loading || state.todos.length > 0 || Boolean(state.error);
-    elements.todoList.hidden = state.loading || state.todos.length === 0;
-    elements.todoList.closest("section").setAttribute("aria-busy", String(state.loading));
-
-    setBusy(elements.newTodoTitle, state.creating);
-    setBusy(elements.createButton, isBusy);
-
-    renderTodos();
-  }
-
-  elements.createForm.addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    const title = normalizeTitle(elements.newTodoTitle.value);
-
-    if (!title) {
-      setError("Todo title is required.");
-      elements.newTodoTitle.focus();
-      return;
+      elements.statusBanner.hidden = !app.state.status;
+      elements.statusBanner.textContent = app.state.status;
     }
 
-    createTodo(title);
-  });
+    function renderTodoItem(todo) {
+      const fragment = elements.itemTemplate.content.cloneNode(true);
+      const item = fragment.querySelector(".todo-item");
+      const checkbox = fragment.querySelector(".todo-complete");
+      const title = fragment.querySelector(".todo-title");
+      const editButton = fragment.querySelector(".todo-edit");
+      const deleteButton = fragment.querySelector(".todo-delete");
+      const editForm = fragment.querySelector(".todo-edit-form");
+      const editInput = fragment.querySelector(".todo-edit-input");
+      const saveButton = fragment.querySelector(".todo-save");
+      const cancelButton = fragment.querySelector(".todo-cancel");
+      const view = fragment.querySelector(".todo-view");
+      const isBusy = app.state.pendingIds.has(todo.id);
+      const isEditing = app.state.editingId === todo.id;
 
-  loadTodos();
-})();
+      item.dataset.todoId = todo.id;
+      checkbox.checked = Boolean(todo.completed);
+      checkbox.setAttribute("aria-label", "Mark " + todo.title + " complete");
+      title.textContent = todo.title;
+      title.classList.toggle("is-completed", Boolean(todo.completed));
+
+      setBusy(checkbox, isBusy);
+      setBusy(editButton, isBusy);
+      setBusy(deleteButton, isBusy);
+      setBusy(editInput, isBusy);
+      setBusy(saveButton, isBusy);
+      setBusy(cancelButton, isBusy);
+
+      view.hidden = isEditing;
+      editForm.hidden = !isEditing;
+      editInput.value = todo.title;
+
+      checkbox.addEventListener("change", function () {
+        app.toggleTodo(todo.id, checkbox.checked);
+      });
+
+      editButton.addEventListener("click", function () {
+        app.startEditing(todo.id);
+        const nextItem = Array.from(elements.todoList.children).find(function (node) {
+          return node.dataset.todoId === todo.id;
+        });
+        const nextInput = nextItem ? nextItem.querySelector(".todo-edit-input") : null;
+
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.select();
+        }
+      });
+
+      deleteButton.addEventListener("click", function () {
+        app.deleteTodo(todo.id);
+      });
+
+      cancelButton.addEventListener("click", function () {
+        app.cancelEditing();
+      });
+
+      editForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        app.submitUpdateTitle(todo.id, editInput.value, {
+          focusInvalid: function () {
+            editInput.focus();
+          },
+        });
+      });
+
+      return fragment;
+    }
+
+    function renderTodos() {
+      elements.todoList.innerHTML = "";
+
+      for (const todo of app.state.todos) {
+        elements.todoList.appendChild(renderTodoItem(todo));
+      }
+    }
+
+    function render() {
+      const isBusy = app.state.loading || app.state.creating;
+
+      renderMessages();
+      elements.loadingState.hidden = !app.state.loading;
+      elements.emptyState.hidden =
+        app.state.loading || app.state.todos.length > 0 || Boolean(app.state.error);
+      elements.todoList.hidden = app.state.loading || app.state.todos.length === 0;
+      elements.todoList.closest("section").setAttribute("aria-busy", String(app.state.loading));
+
+      setBusy(elements.newTodoTitle, app.state.creating);
+      setBusy(elements.createButton, isBusy);
+
+      renderTodos();
+    }
+
+    elements.createForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      app.submitCreate(elements.newTodoTitle.value, {
+        resetForm: function () {
+          elements.createForm.reset();
+        },
+        focusInvalid: function () {
+          elements.newTodoTitle.focus();
+        },
+      });
+    });
+
+    app.loadTodos();
+    return app;
+  }
+
+  const exported = {
+    createTodoApp: createTodoApp,
+    initializeTodoApp: initializeTodoApp,
+    normalizeTitle: normalizeTitle,
+    normalizeTodoList: normalizeTodoList,
+    parseJson: parseJson,
+  };
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = exported;
+  }
+
+  if (globalScope.document) {
+    initializeTodoApp(globalScope.document);
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this);
