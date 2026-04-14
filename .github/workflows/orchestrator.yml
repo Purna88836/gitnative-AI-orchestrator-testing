@@ -9,12 +9,11 @@ on:
   #   types: [opened, synchronize, reopened]
   # workflow_run:
   #   workflows: ["*"]
-    types: [completed]
   # schedule:
   #   - cron: "0 5 * * 1"
 
 concurrency:
-  group: orchestrator-${{ github.event.issue.number || github.run_id }}
+  group: orchestrator-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 permissions:
