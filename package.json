@@ -1,0 +1,7 @@
+{
+  "name": "gitnative-ai-orchestrator-testing",
+  "private": true,
+  "scripts": {
+    "test": "node --test demo/todo-app/test/app.test.js"
+  }
+}
