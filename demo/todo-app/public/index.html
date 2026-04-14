@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="app-card">
+        <header class="app-header">
+          <div>
+            <p class="eyebrow">Demo</p>
+            <h1>Todo App</h1>
+            <p class="subtitle">A small CRUD UI for the `/api/todos` demo API.</p>
+          </div>
+        </header>
+
+        <div id="error-banner" class="banner banner-error" hidden role="alert"></div>
+        <div id="status-banner" class="banner banner-info" hidden aria-live="polite"></div>
+
+        <form id="create-form" class="create-form">
+          <label class="sr-only" for="new-todo-title">New todo title</label>
+          <input
+            id="new-todo-title"
+            name="title"
+            type="text"
+            maxlength="200"
+            placeholder="What needs to be done?"
+            autocomplete="off"
+            required
+          />
+          <button id="create-button" type="submit">Add todo</button>
+        </form>
+
+        <section aria-live="polite" aria-busy="false">
+          <div id="loading-state" class="panel-state" hidden>Loading todos...</div>
+          <div id="empty-state" class="panel-state" hidden>No todos yet. Add one to get started.</div>
+          <ul id="todo-list" class="todo-list" aria-label="Todo items"></ul>
+        </section>
+      </section>
+    </main>
+
+    <template id="todo-item-template">
+      <li class="todo-item">
+        <div class="todo-view">
+          <label class="todo-toggle">
+            <input class="todo-complete" type="checkbox" />
+            <span class="todo-title"></span>
+          </label>
+          <div class="todo-actions">
+            <button class="button-secondary todo-edit" type="button">Edit</button>
+            <button class="button-danger todo-delete" type="button">Delete</button>
+          </div>
+        </div>
+
+        <form class="todo-edit-form" hidden>
+          <label class="sr-only">Edit todo title</label>
+          <input class="todo-edit-input" type="text" maxlength="200" required />
+          <div class="todo-actions">
+            <button class="todo-save" type="submit">Save</button>
+            <button class="button-secondary todo-cancel" type="button">Cancel</button>
+          </div>
+        </form>
+      </li>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
