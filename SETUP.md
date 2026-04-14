@@ -1,5 +1,8 @@
 # AI Orchestrator — Setup Guide
 
+> This guide is only for configuring the repository's orchestrator scaffold.
+> For the Todo demo workload's local setup, runtime commands, API, and architecture notes, see [demo/todo-app/README.md](./demo/todo-app/README.md).
+
 ## Quick Start
 
 ### 1. Copy these files into your repository
