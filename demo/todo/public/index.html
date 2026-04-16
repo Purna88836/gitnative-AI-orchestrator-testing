@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero card">
+        <p class="eyebrow">Todo demo</p>
+        <h1>Small CRUD UI for the planned /api/todos API</h1>
+        <p class="hero-copy">
+          Create tasks, mark them complete, edit titles inline, and remove them
+          when they are done.
+        </p>
+      </section>
+
+      <section class="card">
+        <div id="banner" class="banner hidden" role="status" aria-live="polite"></div>
+
+        <form id="create-form" class="create-form">
+          <label class="sr-only" for="todo-title">New todo title</label>
+          <input
+            id="todo-title"
+            name="title"
+            type="text"
+            maxlength="160"
+            placeholder="What needs doing?"
+            autocomplete="off"
+            required
+          />
+          <button id="create-button" type="submit">Add todo</button>
+        </form>
+
+        <div class="toolbar">
+          <p id="summary" class="summary">Loading todos...</p>
+        </div>
+
+        <div id="content" class="content" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <noscript>
+      <p class="noscript">This demo needs JavaScript enabled.</p>
+    </noscript>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
