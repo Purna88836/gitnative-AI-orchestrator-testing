@@ -1,0 +1,32 @@
+name: Todo Demo Validation
+
+on:
+  push:
+    paths:
+      - 'demo/todo-app/**'
+      - '.github/workflows/todo-demo.yml'
+  pull_request:
+    paths:
+      - 'demo/todo-app/**'
+      - '.github/workflows/todo-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo/todo-app
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run demo tests with coverage
+        run: npm run test:coverage
