@@ -1,0 +1,9 @@
+{
+  "name": "gitnative-ai-orchestrator-testing",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node demo/todo/server.js",
+    "test": "node --test demo/todo/server.test.js demo/todo/lib/todo-store.test.js"
+  }
+}
