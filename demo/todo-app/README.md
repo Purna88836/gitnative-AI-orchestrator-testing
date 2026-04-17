@@ -1,6 +1,6 @@
 # Todo Demo
 
-This directory documents the Todo demo planned in issue [#36](../../issues/36). It is the repository's example workload: a small full-stack app used to exercise orchestrated changes across backend, frontend, QA, and docs surfaces.
+This directory documents the Todo demo planned for issue #36. It is the repository's example workload: a small full-stack app used to exercise orchestrated changes across backend, frontend, QA, and docs surfaces.
 
 It is intentionally separate from the repository's orchestrator scaffold:
 
@@ -30,7 +30,7 @@ demo/todo-app/
   data/
     todos.json
   tests/
-    test_server.py
+    test_api.py
 ```
 
 ## Run locally
