@@ -27,6 +27,13 @@ retry:
   max_attempts: 3
   max_autopilot_continues: 20
 
+# Agent memory — persistent learnings stored in .orchestrator/memory/
+memory:
+  enabled: true
+  path: ".orchestrator/memory"
+  retention_days: 30
+  max_active_display: 20
+
 mcp:
   built_in_mcp_enabled: true
   repo_local_mcp_enabled: false
