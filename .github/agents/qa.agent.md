@@ -26,6 +26,10 @@ tools:
   - orchestrator/get_job_logs
   - orchestrator/summarize_workflow_failure
   - orchestrator/rerun_workflow
+  - orchestrator/get_active_work_board
+  - orchestrator/get_agent_active_work
+  - orchestrator/store_memory
+  - orchestrator/get_agent_memory
   - read
   - edit
   - search
