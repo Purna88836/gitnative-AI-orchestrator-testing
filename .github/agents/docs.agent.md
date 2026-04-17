@@ -19,6 +19,10 @@ tools:
   - orchestrator/list_repository_files
   - orchestrator/read_repository_file
   - orchestrator/get_repo_context
+  - orchestrator/get_active_work_board
+  - orchestrator/get_agent_active_work
+  - orchestrator/store_memory
+  - orchestrator/get_agent_memory
   - read
   - edit
   - search
