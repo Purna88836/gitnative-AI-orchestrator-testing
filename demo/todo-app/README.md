@@ -1,10 +1,10 @@
 # Todo Demo
 
-This directory documents the Todo demo planned for issue #36. It is the repository's example workload: a small full-stack app used to exercise orchestrated changes across backend, frontend, QA, and docs surfaces.
+This directory contains the repository's example workload: a small full-stack Todo app used to exercise orchestrated changes across backend, frontend, QA, and docs surfaces.
 
 It is intentionally separate from the repository's orchestrator scaffold:
 
-- Use [../../SETUP.md](../../SETUP.md) when configuring orchestration for a repository.
+- Use [../../SETUP.md](../../SETUP.md) when configuring orchestration for another repository.
 - Use this README when running, testing, or modifying the Todo demo itself.
 
 ## Architecture at a glance
@@ -13,11 +13,11 @@ The MVP stays dependency-light because this repository does not have an existing
 
 - `server.py` serves both static files and the JSON API using Python's standard library.
 - `public/` contains plain HTML, CSS, and JavaScript with no bundler.
-- `data/` stores demo-only JSON state; mutations should rewrite the file atomically.
+- `data/` stores demo-only JSON state; mutations rewrite the file atomically.
 - `tests/` uses Python's built-in `unittest` tooling.
-- `.github/workflows/todo-demo.yml` is the planned isolated CI entry point for the demo.
+- `.github/workflows/todo-demo.yml` runs isolated demo validation without touching `.github/workflows/orchestrator.yml`.
 
-## Planned layout
+## Layout
 
 ```text
 demo/todo-app/
@@ -28,10 +28,14 @@ demo/todo-app/
     app.js
     styles.css
   data/
+    .gitignore
     todos.json
   tests/
-    test_api.py
+    test_server.py
+    test_ui_integration.py
 ```
+
+`todos.json` is runtime state. The repository keeps `data/.gitignore` checked in so local demo data does not get committed.
 
 ## Run locally
 
@@ -44,7 +48,7 @@ cd demo/todo-app
 python server.py
 ```
 
-The single server process should host both the browser UI and the `/api/todos` endpoints. Open the local URL printed at startup in your browser.
+The single server process hosts both the browser UI and the `/api/todos` endpoints. Open the local URL printed at startup in your browser.
 
 ## Run tests
 
@@ -54,7 +58,7 @@ From the repository root:
 python -m unittest discover -s demo/todo-app/tests -v
 ```
 
-The planned CI workflow should run the same demo-focused validation so Todo checks stay separate from `.github/workflows/orchestrator.yml`.
+The dedicated GitHub Actions workflow runs the same command so Todo validation stays separate from orchestrator automation.
 
 ## API contract
 
@@ -79,13 +83,19 @@ Todo items use this MVP shape:
 }
 ```
 
-Validation errors should return explicit 4xx responses rather than silently accepting bad input.
+Validation errors return explicit 4xx JSON responses instead of silently accepting bad input.
+
+## Validation scope and current gaps
+
+- `tests/test_server.py` covers CRUD behavior, validation errors, missing-data bootstrap behavior, malformed storage handling, and static asset serving.
+- `tests/test_ui_integration.py` serves the checked-in HTML/CSS/JS from a live server and verifies that the frontend asset wiring matches the live `/api/todos` contract.
+- Browser-level automation is intentionally omitted. Keeping QA stdlib-only avoids introducing headless-browser dependencies into this repo, but it means real-browser DOM/runtime behavior still relies on manual spot checks if a UI regression is suspected.
 
 ## Storage behavior
 
 - The JSON store lives under `demo/todo-app/data/`.
-- If the data file does not exist yet, the server should bootstrap an empty todo list.
-- Each create, update, or delete operation should rewrite the file atomically to reduce corruption risk.
+- If the data file does not exist yet, the server bootstraps an empty todo list.
+- Each create, update, or delete operation rewrites the file atomically to reduce corruption risk.
 - This storage is for local/demo use only, not durable multi-user infrastructure.
 
 ## Why the demo is isolated
