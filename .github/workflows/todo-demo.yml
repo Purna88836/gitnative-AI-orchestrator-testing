@@ -1,0 +1,27 @@
+name: Todo demo validation
+
+on:
+  push:
+    paths:
+      - demo/todo-app/**
+      - .github/workflows/todo-demo.yml
+  pull_request:
+    paths:
+      - demo/todo-app/**
+      - .github/workflows/todo-demo.yml
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Todo demo tests
+        run: python -m unittest discover -s demo/todo-app/tests -v
