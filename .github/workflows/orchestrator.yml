@@ -12,8 +12,27 @@ on:
   # schedule:
   #   - cron: "0 5 * * 1"
 
+
+# ─── Concurrency strategy ─────────────────────────────────────────
+# GitHub's concurrency queue allows at most ONE running + ONE queued
+# run per group. With a naive per-issue group every comment — even a
+# non-actionable "+1" — takes that queue slot and cancels whatever
+# actionable @orchestrator comment was sitting behind it with:
+#   "Canceling since a higher priority waiting request for
+#    orchestrator-42 exists"
+#
+# Fix: route non-actionable issue_comment events to a *unique*
+# concurrency group (`orchestrator-noop-<run_id>`) so they never
+# compete with the real per-issue queue. Actionable events (issues,
+# PRs, @orchestrator comments, workflow_run, schedule) all share the
+# per-issue group and serialize cleanly behind running work.
 concurrency:
-  group: orchestrator-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+  group: >-
+    ${{
+      (github.event_name == 'issue_comment' && !contains(github.event.comment.body, '@orchestrator'))
+      && format('orchestrator-noop-{0}', github.run_id)
+      || format('orchestrator-{0}', github.event.issue.number || github.event.pull_request.number || github.run_id)
+    }}
   cancel-in-progress: false
 
 permissions:
@@ -26,9 +45,18 @@ permissions:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
+     # Gatekeeper for every event type:
+    #   • issue_comment: must mention @orchestrator
+    #   • workflow_run: skip when the triggering workflow is this one
+    #     (prevents the infinite loop where the orchestrator's own
+    #     completion re-triggers it via `workflows: ["*"]`)
+    #   • everything else: always run
     if: >-
-      github.event_name != 'issue_comment' ||
-      contains(github.event.comment.body, '@orchestrator')
+      (github.event_name != 'issue_comment' ||
+       contains(github.event.comment.body, '@orchestrator'))
+      &&
+      (github.event_name != 'workflow_run' ||
+       github.event.workflow_run.name != 'AI Orchestrator')
     steps:
       - uses: actions/checkout@v4
 
