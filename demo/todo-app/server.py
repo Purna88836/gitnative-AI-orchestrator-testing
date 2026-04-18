@@ -90,18 +90,22 @@ def validate_update_payload(payload: Any) -> dict[str, Any]:
 
 
 def validate_todo_item(item: Any) -> dict[str, Any]:
-    todo = require_json_object(item)
-    required_keys = {"id", "title", "completed", "createdAt", "updatedAt"}
-    if set(todo) != required_keys:
-        raise ValueError("Todo items in storage must match the expected contract.")
-    if not isinstance(todo["id"], str) or not todo["id"]:
-        raise ValueError("Todo 'id' values must be non-empty strings.")
-    if type(todo["completed"]) is not bool:
-        raise ValueError("Todo 'completed' values must be booleans.")
+    try:
+        todo = require_json_object(item)
+        required_keys = {"id", "title", "completed", "createdAt", "updatedAt"}
+        if set(todo) != required_keys:
+            raise ValueError("Todo items in storage must match the expected contract.")
+        if not isinstance(todo["id"], str) or not todo["id"]:
+            raise ValueError("Todo 'id' values must be non-empty strings.")
+        if type(todo["completed"]) is not bool:
+            raise ValueError("Todo 'completed' values must be booleans.")
+        title = validate_title(todo["title"])
+    except RequestValidationError as error:
+        raise ValueError(str(error)) from error
 
     return {
         "id": todo["id"],
-        "title": validate_title(todo["title"]),
+        "title": title,
         "completed": todo["completed"],
         "createdAt": str(todo["createdAt"]),
         "updatedAt": str(todo["updatedAt"]),
@@ -232,11 +236,11 @@ def build_handler(
             except RequestValidationError as error:
                 self._send_api_error(HTTPStatus.BAD_REQUEST, str(error))
                 return
+            except ValueError as error:
+                self._handle_storage_load_error(error)
+                return
             except OSError as error:
-                self._send_api_error(
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    f"Unable to persist todo data: {error}",
-                )
+                self._handle_storage_write_error(error)
                 return
 
             self._send_json(HTTPStatus.CREATED, todo)
@@ -257,11 +261,11 @@ def build_handler(
             except KeyError:
                 self._send_api_error(HTTPStatus.NOT_FOUND, f"Todo '{todo_id}' was not found.")
                 return
+            except ValueError as error:
+                self._handle_storage_load_error(error)
+                return
             except OSError as error:
-                self._send_api_error(
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    f"Unable to persist todo data: {error}",
-                )
+                self._handle_storage_write_error(error)
                 return
 
             self._send_json(HTTPStatus.OK, todo)
@@ -278,11 +282,11 @@ def build_handler(
             except KeyError:
                 self._send_api_error(HTTPStatus.NOT_FOUND, f"Todo '{todo_id}' was not found.")
                 return
+            except ValueError as error:
+                self._handle_storage_load_error(error)
+                return
             except OSError as error:
-                self._send_api_error(
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    f"Unable to persist todo data: {error}",
-                )
+                self._handle_storage_write_error(error)
                 return
 
             self.send_response(HTTPStatus.NO_CONTENT)
@@ -292,10 +296,7 @@ def build_handler(
             try:
                 todos = store.list_todos()
             except (OSError, ValueError) as error:
-                self._send_api_error(
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    f"Unable to load todo data: {error}",
-                )
+                self._handle_storage_load_error(error)
                 return
 
             self._send_json(HTTPStatus.OK, {"todos": todos})
@@ -365,6 +366,18 @@ def build_handler(
 
         def _send_api_error(self, status: HTTPStatus, message: str) -> None:
             self._send_json(status, {"error": message})
+
+        def _handle_storage_load_error(self, error: Exception) -> None:
+            self._send_api_error(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Unable to load todo data: {error}",
+            )
+
+        def _handle_storage_write_error(self, error: OSError) -> None:
+            self._send_api_error(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                f"Unable to persist todo data: {error}",
+            )
 
         def log_message(self, format: str, *args: Any) -> None:
             return
