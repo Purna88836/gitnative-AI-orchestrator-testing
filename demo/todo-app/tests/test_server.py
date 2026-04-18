@@ -43,17 +43,27 @@ class TodoServerTests(unittest.TestCase):
         self.thread.join(timeout=5)
         self.temporary_directory.cleanup()
 
-    def request(self, method: str, path: str, payload: dict | None = None) -> tuple[int, dict, bytes]:
-        body = None
-        headers = {}
+    def request(
+        self,
+        method: str,
+        path: str,
+        payload: dict | None = None,
+        body: bytes | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> tuple[int, dict, bytes]:
+        if payload is not None and body is not None:
+            raise ValueError("Use either 'payload' or 'body', not both.")
+
+        request_body = body
+        request_headers = dict(headers or {})
         if payload is not None:
-            body = json.dumps(payload).encode("utf-8")
-            headers["Content-Type"] = "application/json"
+            request_body = json.dumps(payload).encode("utf-8")
+            request_headers.setdefault("Content-Type", "application/json")
 
         request = Request(
             f"{self.base_url}{path}",
-            data=body,
-            headers=headers,
+            data=request_body,
+            headers=request_headers,
             method=method,
         )
 
@@ -68,6 +78,10 @@ class TodoServerTests(unittest.TestCase):
         document = json.loads(body.decode("utf-8")) if body else {}
         return status, document
 
+    def write_storage(self, payload: object) -> None:
+        self.data_file.parent.mkdir(parents=True, exist_ok=True)
+        self.data_file.write_text(json.dumps(payload), encoding="utf-8")
+
     def test_get_bootstraps_missing_data_file(self) -> None:
         status, payload = self.request_json("GET", "/api/todos")
 
@@ -76,6 +90,15 @@ class TodoServerTests(unittest.TestCase):
         self.assertTrue(self.data_file.exists())
         stored = json.loads(self.data_file.read_text(encoding="utf-8"))
         self.assertEqual(stored, [])
+
+    def test_post_bootstraps_missing_data_file(self) -> None:
+        status, created = self.request_json("POST", "/api/todos", {"title": "Write tests"})
+
+        self.assertEqual(status, 201)
+        self.assertEqual(created["title"], "Write tests")
+        self.assertTrue(self.data_file.exists())
+        stored = json.loads(self.data_file.read_text(encoding="utf-8"))
+        self.assertEqual(stored, [created])
 
     def test_crud_round_trip_persists_updates(self) -> None:
         status, created = self.request_json("POST", "/api/todos", {"title": "Write tests"})
@@ -133,6 +156,45 @@ class TodoServerTests(unittest.TestCase):
         status, payload = self.request_json("PATCH", f"/api/todos/{todo_id}", {})
         self.assertEqual(status, 400)
         self.assertIn("Provide at least one", payload["error"])
+
+    def test_invalid_json_request_body_returns_400(self) -> None:
+        status, _, body = self.request(
+            "POST",
+            "/api/todos",
+            body=b"{",
+            headers={"Content-Type": "application/json"},
+        )
+        payload = json.loads(body.decode("utf-8"))
+
+        self.assertEqual(status, 400)
+        self.assertEqual(payload["error"], "Request body must contain valid JSON.")
+
+    def test_mutations_report_malformed_storage_as_json_errors(self) -> None:
+        malformed_todos = [
+            {
+                "id": "todo-1",
+                "title": 99,
+                "completed": False,
+                "createdAt": "2026-04-18T00:00:00Z",
+                "updatedAt": "2026-04-18T00:00:00Z",
+            }
+        ]
+        scenarios = [
+            ("POST", "/api/todos", {"title": "Create todo"}),
+            ("PATCH", "/api/todos/todo-1", {"completed": True}),
+            ("DELETE", "/api/todos/todo-1", None),
+        ]
+
+        for method, path, payload in scenarios:
+            with self.subTest(method=method):
+                self.write_storage(malformed_todos)
+                status, response = self.request_json(method, path, payload)
+
+                self.assertEqual(status, 500)
+                self.assertEqual(
+                    response,
+                    {"error": "Unable to load todo data: Field 'title' must be a string."},
+                )
 
     def test_static_files_are_served_from_public_dir(self) -> None:
         (self.public_dir / "styles.css").write_text("body { color: #111; }", encoding="utf-8")
