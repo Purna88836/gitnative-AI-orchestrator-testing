@@ -81,3 +81,15 @@ jobs:
             -v "${{ github.event_path }}:/github/workflow/event.json:ro" \
             -w /github/workspace \
             ghcr.io/purna88836/git-native-agentic-ai-orchestrator:latest
+
+      - name: Upload browser artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orchestrator-browser-artifacts-${{ github.run_id }}
+          if-no-files-found: ignore
+          path: |
+            .playwright-mcp/**
+            *-screenshot.png
+            *-snapshot.md
+            *-console.log
