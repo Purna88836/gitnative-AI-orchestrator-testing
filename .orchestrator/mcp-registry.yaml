@@ -70,7 +70,7 @@ servers:
   #
   playwright:
     command: npx
-    args: ["-y", "@playwright/mcp@0.0.70", "--headless", "--isolated"]
+    args: ["-y", "@playwright/mcp@0.0.70", "--headless", "--isolated", "--browser", "chromium"]
     transport: stdio
     env_allowed: []
     tools_allowed:
