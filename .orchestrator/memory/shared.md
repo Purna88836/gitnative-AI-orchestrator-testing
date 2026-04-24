@@ -1,6 +1,7 @@
 # Shared Memory
 
 ## Shared Learnings
+- [2026-04-24] GitHub Actions artifacts cannot be added retroactively to a run that started before an upload step existed. For one-off Playwright captures in this repo, merge the workflow upload step first, then rerun the issue to get an artifact.
 - [2026-04-24] Playwright MCP is now usable in this repo's runner for basic browser validations (navigate, snapshot, wait, screenshot), so future one-off browser checks can be attempted directly before assuming an environment block.
 - [2026-04-24] Approved Playwright MCP usage depends on the runner having Chrome available at /opt/google/chrome/chrome; without that binary, Playwright MCP browser launches fail before navigation even though the registry entry is present.
 - [2026-04-21] Resumed orchestrator work may require clearing stale `AI: blocked` labels left behind by earlier human pause requests; don't assume a new actionable request cleaned labels automatically.
