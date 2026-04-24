@@ -1,0 +1,86 @@
+# ────────────────────────────────────────────────────────────────────────────
+# MCP Server Registry — approved MCP servers agents may use in this repo.
+#
+# This file is a TRUST BOUNDARY. Adding a new entry grants any future agent
+# the ability to reference this server in their frontmatter. Changes must
+# land via pull request with human review.
+#
+# Schema:
+#   version:            registry schema version (integer, current = 1)
+#   servers:
+#     <server-id>:
+#       command:        executable (e.g. "npx", "uvx", "docker")
+#       args:           list of arguments passed to the command
+#       transport:      "stdio" (default) or "http"
+#       url:            required when transport: http
+#       env_allowed:    env var names this server may receive (never values)
+#       tools_allowed:  subset of server's tools agents may request
+#       risk:           "low" | "medium" | "high"  (informational — surfaced in PR reviews)
+#       description:    one-line summary shown to humans and coordinator
+#
+# Agents reference entries from this registry in their own frontmatter:
+#
+#   mcp_servers:
+#     - id: aws-read
+#       tools: [cost_get, ec2_describe]
+#       env_required: [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION]
+#       justification: "Read AWS state before proposing infra changes"
+#
+# Enforcement (src/orchestrator/mcp_registry.py):
+#   - Agent can only request tools listed in server's tools_allowed.
+#   - Agent can only request env vars listed in server's env_allowed.
+#   - Missing secrets → agent spawns a request_secrets call (blocks issue,
+#     tells the human which secrets to add in Settings → Secrets).
+# ────────────────────────────────────────────────────────────────────────────
+
+version: 1
+
+servers:
+  # Example: uncomment and customize entries as your team approves MCP servers.
+  #
+  # aws-read:
+  #   command: npx
+  #   args: ["-y", "@aws/mcp-server-aws@1.2.0"]
+  #   transport: stdio
+  #   env_allowed:
+  #     - AWS_ACCESS_KEY_ID
+  #     - AWS_SECRET_ACCESS_KEY
+  #     - AWS_REGION
+  #     - AWS_SESSION_TOKEN
+  #   tools_allowed:
+  #     - ec2_describe
+  #     - s3_list
+  #     - cost_get
+  #   risk: medium
+  #   description: "Read-only AWS account access — describe/list/cost queries."
+  #
+  # terraform:
+  #   command: npx
+  #   args: ["-y", "@hashicorp/mcp-terraform@0.5.0"]
+  #   transport: stdio
+  #   env_allowed:
+  #     - AWS_ACCESS_KEY_ID
+  #     - AWS_SECRET_ACCESS_KEY
+  #     - AWS_REGION
+  #   tools_allowed:
+  #     - plan
+  #     - apply_with_approval
+  #   risk: high
+  #   description: "Terraform plan/apply — infrastructure provisioning."
+  #
+  playwright:
+    command: npx
+    args: ["-y", "@playwright/mcp@0.0.70", "--headless", "--isolated"]
+    transport: stdio
+    env_allowed: []
+    tools_allowed:
+      - browser_navigate
+      - browser_snapshot
+      - browser_click
+      - browser_type
+      - browser_take_screenshot
+      - browser_tabs
+      - browser_wait_for
+      - browser_console_messages
+    risk: low
+    description: "Headless isolated browser automation for UI verification and smoke tests."
