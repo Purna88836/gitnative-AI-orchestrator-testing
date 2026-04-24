@@ -11,4 +11,5 @@
 - [2026-04-17] The active work board can include closed issues that still retain the `AI: working` label, so board reads may need human interpretation or cleanup before using them for workload decisions.
 
 ## Decisions
+- [2026-04-24] For Playwright artifact publication, the minimal fix is an additive upload-artifact step in `.github/workflows/orchestrator.yml`; issue-triggered runs only publish artifacts after that workflow change is merged and the issue is rerun.
 - [2026-04-18] For the Todo demo rollout, QA validation landed as stacked PR #44 on top of backend PR #43 because main did not yet contain the demo. The clean merge order is PR #41 (docs) -> PR #42 (frontend) -> PR #43 (backend) -> retarget/refresh PR #44 onto main -> merge PR #44.
