@@ -37,5 +37,9 @@ memory:
 mcp:
   built_in_mcp_enabled: true
   repo_local_mcp_enabled: false
+  repo_local_mcp_path: ".orchestrator/mcp-config.json"
+  # Curated allowlist of external MCP servers agents may use.
+  # See .orchestrator/mcp-registry.yaml for the schema.
+  registry_path: ".orchestrator/mcp-registry.yaml"
 
 effort: high
