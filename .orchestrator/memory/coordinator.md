@@ -1,6 +1,7 @@
 # Coordinator Agent Memory
 
 ## Architectural
+- [2026-04-24] GitHub issue comments can only embed images by URL through the available automation surface; direct binary comment-attachment upload is not exposed through the public API/MCP tools.
 - [2026-04-24] The current runner environment can now execute the approved Playwright MCP browser flow successfully for simple navigation/snapshot/screenshot validations; issue #45 completed against https://example.com after the browser libraries were installed.
 - [2026-04-24] The repo's approved MCP registry already includes a low-risk Playwright server for headless browser automation, so simple browser-validation issues do not need a new specialist agent by default.
 - [2026-04-17] This repository is currently a thin orchestrator scaffold: docs, orchestrator config, one orchestrator workflow, and specialist agent files, but no existing application/runtime stack. New demo workloads should be isolated under their own directory and keep dependencies minimal unless a concrete need emerges.
