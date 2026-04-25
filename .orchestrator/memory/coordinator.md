@@ -1,6 +1,7 @@
 # Coordinator Agent Memory
 
 ## Architectural
+- [2026-04-25] For public repos, a branch-hosted file URL can be embedded in an issue comment as a workaround when native comment attachments are unavailable; safe branches can hold transient issue assets.
 - [2026-04-24] GitHub issue comments can only embed images by URL through the available automation surface; direct binary comment-attachment upload is not exposed through the public API/MCP tools.
 - [2026-04-24] The current runner environment can now execute the approved Playwright MCP browser flow successfully for simple navigation/snapshot/screenshot validations; issue #45 completed against https://example.com after the browser libraries were installed.
 - [2026-04-24] The repo's approved MCP registry already includes a low-risk Playwright server for headless browser automation, so simple browser-validation issues do not need a new specialist agent by default.
