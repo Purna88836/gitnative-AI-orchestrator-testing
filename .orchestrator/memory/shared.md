@@ -1,6 +1,7 @@
 # Shared Memory
 
 ## Shared Learnings
+- [2026-04-25] For public repos, issue comments can render branch-hosted asset URLs directly, which is a workable fallback when GitHub automation cannot create native comment attachments.
 - [2026-04-24] GitHub automation in this repo can post Markdown issue comments but cannot programmatically upload an image as a native issue-comment attachment; inline comment images need either manual UI upload or a separately hosted URL.
 - [2026-04-24] GitHub Actions artifacts cannot be added retroactively to a run that started before an upload step existed. For one-off Playwright captures in this repo, merge the workflow upload step first, then rerun the issue to get an artifact.
 - [2026-04-24] Playwright MCP is now usable in this repo's runner for basic browser validations (navigate, snapshot, wait, screenshot), so future one-off browser checks can be attempted directly before assuming an environment block.
