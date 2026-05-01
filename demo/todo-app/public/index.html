@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Todo Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <p class="eyebrow">Todo demo</p>
+        <h1>Track a small list without extra tooling</h1>
+        <p class="app-copy">
+          This MVP uses the demo CRUD API to create, edit, complete, refresh, and delete tasks from a single page.
+        </p>
+      </header>
+
+      <noscript>
+        <p class="panel noscript-message">This demo requires JavaScript to load and update todos.</p>
+      </noscript>
+
+      <section class="panel controls-panel" aria-labelledby="create-heading">
+        <h2 id="create-heading">Add a task</h2>
+        <form id="todo-form" class="todo-form">
+          <label class="sr-only" for="todo-title">Task title</label>
+          <div class="input-row">
+            <input
+              id="todo-title"
+              name="title"
+              type="text"
+              maxlength="120"
+              autocomplete="off"
+              placeholder="What needs doing?"
+              required
+            />
+            <button id="add-button" type="submit">Add todo</button>
+          </div>
+          <p class="field-hint">Use a short title so the inline edit flow stays easy to scan.</p>
+        </form>
+      </section>
+
+      <section class="panel status-panel" aria-live="polite" aria-atomic="true">
+        <p id="status-message" class="status-message">Loading todos...</p>
+        <p id="error-message" class="error-message" role="alert" hidden></p>
+      </section>
+
+      <section class="panel list-panel" aria-labelledby="todos-heading">
+        <div class="list-heading">
+          <h2 id="todos-heading">Tasks</h2>
+          <button id="refresh-button" class="secondary-button" type="button">Refresh</button>
+        </div>
+
+        <div id="loading-state" class="empty-state">Loading todos...</div>
+        <div id="empty-state" class="empty-state" hidden>No todos yet. Add your first task above.</div>
+        <ul id="todo-list" class="todo-list" aria-describedby="status-message" hidden></ul>
+      </section>
+    </main>
+
+    <template id="todo-item-template">
+      <li class="todo-item">
+        <div class="todo-view">
+          <div class="todo-main">
+            <label class="toggle-row">
+              <input class="todo-toggle" type="checkbox" />
+              <span class="todo-title"></span>
+            </label>
+            <p class="todo-meta"></p>
+          </div>
+          <div class="todo-actions">
+            <button class="secondary-button edit-button" type="button">Edit</button>
+            <button class="danger-button delete-button" type="button">Delete</button>
+          </div>
+        </div>
+
+        <form class="edit-form" hidden>
+          <label class="sr-only">Edit task title</label>
+          <div class="input-row">
+            <input class="edit-input" name="title" type="text" maxlength="120" required aria-label="Edit task title" />
+            <button class="save-button" type="submit">Save</button>
+            <button class="secondary-button cancel-edit-button" type="button">Cancel</button>
+          </div>
+        </form>
+      </li>
+    </template>
+  </body>
+</html>
