@@ -1,6 +1,7 @@
 # Shared Memory
 
 ## Shared Learnings
+- [2026-05-01] When reporting repo progress to the founder, distinguish three states clearly: merged on main, completed in planning/issues, and still in open PRs or waiting for approval; otherwise the repo can look further along than it really is.
 - [2026-05-01] For planning-only work in this scaffold repo, sub-issue deliverables can be completed as issue comments, synthesized into the parent issue, and closed out while the parent remains the single founder-approval gate.
 - [2026-05-01] For India-focused job-marketplace planning, do not assume broad Aadhaar eKYC access in v1; OTP-first onboarding plus flexible ID/manual review is a safer default, with DigiLocker or authorized KYC used only where compliant.
 - [2026-05-01] For the instant-jobs marketplace planning work, the safest backend direction is a trust-first modular monolith: NestJS/Fastify + Postgres + Redis + async workers, with explainable rules-based matching, review queues, and payments deferred behind adapters until the founder explicitly approves money movement.
