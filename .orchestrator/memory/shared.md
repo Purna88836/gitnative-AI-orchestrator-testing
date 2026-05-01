@@ -1,6 +1,7 @@
 # Shared Memory
 
 ## Shared Learnings
+- [2026-05-01] In this repo's current scaffold-only state, planning/research sub-issues can be completed via issue-comment deliverables without code changes or PRs when the founder asks for pre-build research.
 - [2026-05-01] For the instant-jobs marketplace concept in issue #47, the safest UX direction is OTP-first responsive web, progressive profiling, visible verification checklists, and trust badges before any richer app build is attempted.
 - [2026-04-25] For public repos, issue comments can render branch-hosted asset URLs directly, which is a workable fallback when GitHub automation cannot create native comment attachments.
 - [2026-04-24] GitHub automation in this repo can post Markdown issue comments but cannot programmatically upload an image as a native issue-comment attachment; inline comment images need either manual UI upload or a separately hosted URL.
