@@ -13,6 +13,7 @@
 - [2026-04-17] The active work board can include closed issues that still retain the `AI: working` label, so board reads may need human interpretation or cleanup before using them for workload decisions.
 
 ## Decisions
+- [2026-05-30] For issue #52, once #54 locked the contract only as an issue-comment deliverable and `main` was still scaffold-only, the safest next step was to dispatch #57 first and keep #58 queued until backend establishes the initial app/API surface.
 - [2026-05-30] For issue #52, once the founder approved the simulation-first MVP scope, the correct next orchestration step was to dispatch #54 first and hold #57/#58 until the contract and state-transition rules are locked.
 - [2026-05-30] For issue #52, the road-traffic-control app should start as a simulation-first operator MVP: 3-5 modeled intersections, manual control actions, incident logging, and audit history, with live hardware integration and optimization deferred until after founder approval.
 - [2026-05-01] For founder-facing progress-report issues in this scaffold repo, summarize progress by milestone and explicitly separate work merged to main from work that is only issue-done or sitting in open PRs.
