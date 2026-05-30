@@ -13,6 +13,7 @@
 - [2026-04-17] The active work board can include closed issues that still retain the `AI: working` label, so board reads may need human interpretation or cleanup before using them for workload decisions.
 
 ## Decisions
+- [2026-05-30] For issue #52, once the founder approved the simulation-first MVP scope, the correct next orchestration step was to dispatch #54 first and hold #57/#58 until the contract and state-transition rules are locked.
 - [2026-05-30] For issue #52, the road-traffic-control app should start as a simulation-first operator MVP: 3-5 modeled intersections, manual control actions, incident logging, and audit history, with live hardware integration and optimization deferred until after founder approval.
 - [2026-05-01] For founder-facing progress-report issues in this scaffold repo, summarize progress by milestone and explicitly separate work merged to main from work that is only issue-done or sitting in open PRs.
 - [2026-05-01] For planning-only parent issues in this scaffold repo, once sub-issue research is synthesized into the parent issue comment and the parent carries the human-approval gate, the child research issue can be marked done without opening a PR.
