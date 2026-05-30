@@ -1,6 +1,7 @@
 # Shared Memory
 
 ## Shared Learnings
+- [2026-05-30] For broad greenfield MVPs decomposed into contract, implementation, and QA issues, founder approval on the parent should trigger the contract issue first; parallel implementation should wait until the contract is explicit enough to prevent scope drift.
 - [2026-05-30] For broad greenfield app requests in this scaffold repo, the safest coordinator move is to narrow the parent issue into a demoable MVP with explicit non-goals, create only implementation-plus-validation child issues, and keep the parent as the human-approval gate before dispatching build work.
 - [2026-05-01] When reporting repo progress to the founder, distinguish three states clearly: merged on main, completed in planning/issues, and still in open PRs or waiting for approval; otherwise the repo can look further along than it really is.
 - [2026-05-01] For planning-only work in this scaffold repo, sub-issue deliverables can be completed as issue comments, synthesized into the parent issue, and closed out while the parent remains the single founder-approval gate.
