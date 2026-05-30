@@ -1,6 +1,7 @@
 # Shared Memory
 
 ## Shared Learnings
+- [2026-05-30] For scaffold-only product requests in this repo, a precise issue-comment contract is preferable to placeholder code/docs when there is no real app surface yet; downstream implementation should start only after that contract is explicit.
 - [2026-05-30] For broad greenfield MVPs decomposed into contract, implementation, and QA issues, founder approval on the parent should trigger the contract issue first; parallel implementation should wait until the contract is explicit enough to prevent scope drift.
 - [2026-05-30] For broad greenfield app requests in this scaffold repo, the safest coordinator move is to narrow the parent issue into a demoable MVP with explicit non-goals, create only implementation-plus-validation child issues, and keep the parent as the human-approval gate before dispatching build work.
 - [2026-05-01] When reporting repo progress to the founder, distinguish three states clearly: merged on main, completed in planning/issues, and still in open PRs or waiting for approval; otherwise the repo can look further along than it really is.
